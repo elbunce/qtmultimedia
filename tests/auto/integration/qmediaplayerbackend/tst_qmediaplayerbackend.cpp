@@ -98,6 +98,9 @@ private slots:
     void setSource_remainsInStoppedState_whenPlayerWasStopped();
     void setSource_entersStoppedState_whenPlayerWasPlaying();
 
+    void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data();
+    void setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio();
+
     void pause_doesNotChangePlayerState_whenInvalidFileLoaded();
     void pause_doesNothing_whenMediaIsNotLoaded();
     void pause_entersPauseState_whenPlayerWasPlaying();
@@ -174,6 +177,8 @@ private:
     QUrl m_localFileWithMetadata;
     QUrl m_localVideoFile3ColorsWithSound;
     QUrl m_oneRedFrameVideo;
+    QUrl m_192x108_PAR_2_3_Video;
+    QUrl m_192x108_PAR_3_2_Video;
 
     const std::array<QRgb, 3> m_video3Colors = { { 0xFF0000, 0x00FF00, 0x0000FF } };
     QString m_vlcCommand;
@@ -290,6 +295,11 @@ void tst_QMediaPlayerBackend::initTestCase()
 
     m_oneRedFrameVideo =
             MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/one_red_frame.mp4");
+
+    m_192x108_PAR_2_3_Video =
+            MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/par_2_3.mp4");
+    m_192x108_PAR_3_2_Video =
+            MediaFileSelector::selectMediaFile(QStringList() << "qrc:/testdata/par_3_2.mp4");
 
     detectVlcCommand();
 }
@@ -692,6 +702,78 @@ void tst_QMediaPlayerBackend::setSource_entersStoppedState_whenPlayerWasPlaying(
     QCOMPARE(m_fixture->player.position(), 0);
 }
 
+void tst_QMediaPlayerBackend::
+        setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio_data()
+{
+    QTest::addColumn<QUrl>("url");
+    QTest::addColumn<QSize>("expectedVideoSize");
+
+    QTest::addRow("Horizontal expanding (par=3/2)")
+            << m_192x108_PAR_3_2_Video << QSize(192 * 3 / 2, 108);
+    QTest::addRow("Vertical expanding (par=2/3)")
+            << m_192x108_PAR_2_3_Video << QSize(192, 108 * 3 / 2);
+}
+
+void tst_QMediaPlayerBackend::
+        setSourceAndPlay_setCorrectVideoSize_whenVideoHasNonStandardPixelAspectRatio()
+{
+    QFETCH(QUrl, url);
+    QFETCH(QSize, expectedVideoSize);
+
+    m_fixture->player.setSource(url);
+    QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
+    QCOMPARE(m_fixture->player.metaData().value(QMediaMetaData::Resolution), QSize(192, 108));
+
+    QCOMPARE(m_fixture->surface.videoSize(), expectedVideoSize);
+
+    m_fixture->player.play();
+
+    auto frame = m_fixture->surface.waitForFrame();
+    QVERIFY(frame.isValid());
+    QCOMPARE(frame.size(), expectedVideoSize);
+    QCOMPARE(frame.surfaceFormat().frameSize(), expectedVideoSize);
+    QCOMPARE(frame.surfaceFormat().viewport(), QRect(QPoint(), expectedVideoSize));
+
+    auto image = frame.toImage();
+    QCOMPARE(frame.size(), expectedVideoSize);
+
+    // clang-format off
+
+    // Video schema:
+    //
+    //           192
+    // /---------------------\
+    // |   White  |          |
+    // |          |          |
+    // |----------/          | 108
+    // |              Red    |
+    // |                     |
+    // \---------------------/
+
+    // clang-format on
+
+    // check the proper scaling
+    const std::vector<QRgb> colors = { 0xFFFFFF, 0xFF0000, 0xFF00, 0xFF, 0x0 };
+
+    const auto pixelsOffset = 4;
+    const auto halfSize = expectedVideoSize / 2;
+
+    QCOMPARE(findSimilarColorIndex(colors, image.pixel(0, 0)), 0);
+    QCOMPARE(findSimilarColorIndex(colors, image.pixel(halfSize.width() - pixelsOffset, 0)), 0);
+    QCOMPARE(findSimilarColorIndex(colors, image.pixel(0, halfSize.height() - pixelsOffset)), 0);
+    QCOMPARE(findSimilarColorIndex(colors,
+                                   image.pixel(halfSize.width() - pixelsOffset,
+                                               halfSize.height() - pixelsOffset)),
+             0);
+
+    QCOMPARE(findSimilarColorIndex(colors, image.pixel(halfSize.width() + pixelsOffset, 0)), 1);
+    QCOMPARE(findSimilarColorIndex(colors, image.pixel(0, halfSize.height() + pixelsOffset)), 1);
+    QCOMPARE(findSimilarColorIndex(colors,
+                                   image.pixel(halfSize.width() + pixelsOffset,
+                                               halfSize.height() + pixelsOffset)),
+             1);
+}
+
 void tst_QMediaPlayerBackend::pause_doesNotChangePlayerState_whenInvalidFileLoaded()
 {
     m_fixture->player.setSource({ "Some not existing media" });
@@ -925,7 +1007,7 @@ void tst_QMediaPlayerBackend::
 
         auto frame1 = surface.waitForFrame();
         QVERIFY(frame1.isValid());
-        QCOMPARE(frame1.size(), QSize(160, 120));
+        QCOMPARE(frame1.size(), QSize(213, 120));
 
         QCOMPARE_GT(frame1.startTime(), pos * 1000);
 
@@ -1357,7 +1439,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QVideoFrame frame = surface.m_frameList.back();
         const qint64 elapsed = (frame.startTime() / 1000) - position; // frame.startTime() is microsecond, position is milliseconds.
         QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
-        QCOMPARE(frame.width(), 160);
+        QCOMPARE(frame.width(), 213);
         QCOMPARE(frame.height(), 120);
 
         // create QImage for QVideoFrame to verify RGB pixel colors
@@ -1380,7 +1462,7 @@ void tst_QMediaPlayerBackend::seekPauseSeek()
         QVideoFrame frame = surface.m_frameList.back();
         const qint64 elapsed = (frame.startTime() / 1000) - position;
         QVERIFY2(qAbs(elapsed) < (qint64)500, QByteArray::number(elapsed).constData());
-        QCOMPARE(frame.width(), 160);
+        QCOMPARE(frame.width(), 213);
         QCOMPARE(frame.height(), 120);
 
         QImage image = frame.toImage();

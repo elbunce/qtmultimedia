@@ -64,8 +64,8 @@ void QFFmpegMediaPlayer::setPosition(qint64 position)
         m_playbackEngine->seek(position * 1000);
         updatePosition();
     }
-    if (state() == QMediaPlayer::StoppedState)
-        mediaStatusChanged(QMediaPlayer::LoadedMedia);
+
+    mediaStatusChanged(QMediaPlayer::LoadedMedia);
 }
 
 void QFFmpegMediaPlayer::updatePosition()
@@ -96,9 +96,18 @@ void QFFmpegMediaPlayer::onLoopChanged()
     m_positionUpdateTimer.start();
 }
 
+void QFFmpegMediaPlayer::onBuffered()
+{
+    if (mediaStatus() == QMediaPlayer::BufferingMedia)
+        mediaStatusChanged(QMediaPlayer::BufferedMedia);
+}
+
 float QFFmpegMediaPlayer::bufferProgress() const
 {
-    return 1.;
+    const auto status = mediaStatus();
+    return status == QMediaPlayer::BufferingMedia   ? 0.25f // to be improved
+            : status == QMediaPlayer::BufferedMedia ? 1.f
+                                                    : 0.f;
 }
 
 QMediaTimeRange QFFmpegMediaPlayer::availablePlaybackRanges() const
@@ -207,6 +216,8 @@ void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaData
             &QFFmpegMediaPlayer::error);
     connect(m_playbackEngine.get(), &PlaybackEngine::loopChanged, this,
             &QFFmpegMediaPlayer::onLoopChanged);
+    connect(m_playbackEngine.get(), &PlaybackEngine::buffered, this,
+            &QFFmpegMediaPlayer::onBuffered);
 
     m_playbackEngine->setMedia(std::move(*mediaDataHolder.value()));
 
@@ -258,7 +269,9 @@ void QFFmpegMediaPlayer::runPlayback()
     m_playbackEngine->play();
     m_positionUpdateTimer.start();
     stateChanged(QMediaPlayer::PlayingState);
-    mediaStatusChanged(QMediaPlayer::BufferedMedia);
+
+    if (mediaStatus() == QMediaPlayer::LoadedMedia || mediaStatus() == QMediaPlayer::EndOfMedia)
+        mediaStatusChanged(QMediaPlayer::BufferingMedia);
 }
 
 void QFFmpegMediaPlayer::pause()
@@ -278,7 +291,9 @@ void QFFmpegMediaPlayer::pause()
     m_playbackEngine->pause();
     m_positionUpdateTimer.stop();
     stateChanged(QMediaPlayer::PausedState);
-    mediaStatusChanged(QMediaPlayer::BufferedMedia);
+
+    if (mediaStatus() == QMediaPlayer::LoadedMedia || mediaStatus() == QMediaPlayer::EndOfMedia)
+        mediaStatusChanged(QMediaPlayer::BufferingMedia);
 }
 
 void QFFmpegMediaPlayer::stop()

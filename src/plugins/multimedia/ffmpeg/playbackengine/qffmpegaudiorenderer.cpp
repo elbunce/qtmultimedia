@@ -112,7 +112,7 @@ Renderer::RenderingResult AudioRenderer::renderInternal(Frame frame)
 
             const auto time = bufferLoadingTime(syncStamp);
 
-            qCDebug(qLcAudioRenderer) << "Draining AudioRenderer, time:" << time;
+            qCDebug(qLcAudioRenderer) << "Draining AudioRenderer, time:" << time.count();
 
             return { time.count() == 0, time };
         }
@@ -270,15 +270,15 @@ void AudioRenderer::updateSynchronization(const SynchronizationStamp &stamp, con
             qCDebug(qLcAudioRenderer)
                 << "Change rendering time:"
                 << "\n  First frame:" << m_firstFrame
-                << "\n  Delay (frame+buffer-written):" << currentFrameDelay << "+"
-                                                       << bufferLoadingTime << "-"
-                                                       << writtenTime << "="
-                                                       << soundDelay
-                << "\n  Fixed delay:" << fixedDelay
-                << "\n  Target delay:" << targetSoundDelay
-                << "\n  Buffer durations (min/max/limit):" << m_timings.minSoundDelay
-                                                           << m_timings.maxSoundDelay
-                                                           << m_timings.actualBufferDuration
+                << "\n  Delay (frame+buffer-written):" << currentFrameDelay.count() << "+"
+                                                       << bufferLoadingTime.count() << "-"
+                                                       << writtenTime.count() << "="
+                                                       << soundDelay.count()
+                << "\n  Fixed delay:" << fixedDelay.count()
+                << "\n  Target delay:" << targetSoundDelay.count()
+                << "\n  Buffer durations (min/max/limit):" << m_timings.minSoundDelay.count()
+                                                           << m_timings.maxSoundDelay.count()
+                                                           << m_timings.actualBufferDuration.count()
                 << "\n  Audio sink state:" << stamp.audioSinkState;
             // clang-format on
         }

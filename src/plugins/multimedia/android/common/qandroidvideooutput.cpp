@@ -60,6 +60,11 @@ public:
         return std::make_unique<QAndroidVideoFrameTextures>(rhi, m_size, m_tex->nativeTexture().object);
     }
 
+	virtual quint64 textureHandle(int plane) const
+	{
+		return (plane == 0) ? m_tex->nativeTexture().object : 0;
+	}
+
 private:
     QSize m_size;
     std::unique_ptr<QRhiTexture> m_tex;

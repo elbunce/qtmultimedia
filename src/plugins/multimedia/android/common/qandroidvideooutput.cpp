@@ -60,7 +60,7 @@ public:
         return std::make_unique<QAndroidVideoFrameTextures>(rhi, m_size, m_tex->nativeTexture().object);
     }
 
-	virtual quint64 textureHandle(int plane) const
+	virtual quint64 textureHandle(int plane) const override
 	{
 		return (plane == 0) ? m_tex->nativeTexture().object : 0;
 	}

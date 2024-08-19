@@ -195,7 +195,7 @@ static QMutex sessionMutex;
     if (m_playerLayer)
         m_playerLayer.player = nil;
 #if defined(Q_OS_IOS)
-    [self setSessionActive:NO];
+//    [self setSessionActive:NO];
 #endif
 }
 
@@ -314,8 +314,10 @@ static QMutex sessionMutex;
                           options:0
                           context:AVFMediaPlayerObserverCurrentItemDurationObservationContext];
 #if defined(Q_OS_IOS)
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
-    [self setSessionActive:YES];
+	AVAudioSession* audioSession = [AVAudioSession sharedInstance];
+	if (audioSession.category == AVAudioSessionCategorySoloAmbient)
+		[audioSession setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
+//    [self setSessionActive:YES];
 #endif
 }
 

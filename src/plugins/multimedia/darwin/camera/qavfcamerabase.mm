@@ -192,9 +192,13 @@ void QAVFVideoDevices::updateCameraDevices()
             info->isDefault = true;
         info->id = QByteArray([[device uniqueID] UTF8String]);
         info->description = QString::fromNSString([device localizedName]);
-
+		
+		if (device.position == AVCaptureDevicePositionFront)
+			info->position = QCameraDevice::FrontFace;
+		else if (device.position == AVCaptureDevicePositionBack)
+			info->position = QCameraDevice::BackFace;
         qCDebug(qLcCamera) << "Handling camera info" << info->description
-                           << (info->isDefault ? "(default)" : "");
+                           << (info->isDefault ? "(default)" : "") << " position=" << info->position;
 
         QSet<QSize> photoResolutions;
         QList<QCameraFormat> videoFormats;

@@ -40,17 +40,13 @@ QList<QCapturableWindow> QX11CapturableWindows::windows() const
     auto freeDataGuard = qScopeGuard([data]() { XFree(data); });
     auto windows = reinterpret_cast<XID *>(data);
     for (unsigned long i = 0; i < windowsCount; i++) {
-        auto windowData = std::make_unique<QCapturableWindowPrivate>();
-        windowData->id = static_cast<QCapturableWindowPrivate::Id>(windows[i]);
+        XID windowId = windows[i];
+        if (!qIsX11WindowValid(display, windowId))
+            continue;
 
-        char *windowTitle = nullptr;
-        if (XFetchName(display, windows[i], &windowTitle) && windowTitle) {
-            windowData->description = QString::fromUtf8(windowTitle);
-            XFree(windowTitle);
-        }
-
-        if (isWindowValid(*windowData))
-            result.push_back(windowData.release()->create());
+        result.push_back(QCapturableWindowPrivate::create(
+            static_cast<QCapturableWindowPrivate::Id>(windowId),
+            qGetX11WindowTitle(display, windowId).value_or(QString())));
     }
 
     return result;

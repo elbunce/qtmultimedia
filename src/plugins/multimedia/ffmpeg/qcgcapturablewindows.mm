@@ -28,12 +28,13 @@ QList<QCapturableWindow> QCGCapturableWindows::windows() const
                       "CGWindowID size is not compatible with kCFNumberSInt32Type");
         CFNumberGetValue(windowNumber, kCFNumberSInt32Type, &windowId);
 
-        auto windowData = std::make_unique<QCapturableWindowPrivate>();
-        windowData->id = static_cast<QCapturableWindowPrivate::Id>(windowId);
+        QString windowDescription;
         if (windowName)
-            windowData->description = QString::fromCFString(windowName);
+            windowDescription = QString::fromCFString(windowName);
 
-        result.push_back(windowData.release()->create());
+        result.push_back(QCapturableWindowPrivate::create(
+            static_cast<QCapturableWindowPrivate::Id>(windowId),
+            std::move(windowDescription)));
     }
 
     return result;
@@ -52,11 +53,11 @@ QMaybe<QCapturableWindow> QCGCapturableWindows::fromQWindow(QWindow *window) con
 
     NSWindow* nsWindow = [nsView window];
     if (nsWindow == nullptr)
-        return QUnexpected{ QStringLiteral("NSView had no associated NSWindow") };
+        return { QUnexpect{}, QStringLiteral("NSView had no associated NSWindow") };
 
     const auto cgWindowId = (CGWindowID)[nsWindow windowNumber];
     if (cgWindowId == kCGNullWindowID)
-        return QUnexpected{ QStringLiteral("NSWindow has no CGWindowID") };
+        return { QUnexpect{}, QStringLiteral("NSWindow has no CGWindowID") };
 
     return QCapturableWindowPrivate::create(
         static_cast<QCapturableWindowPrivate::Id>(cgWindowId),

@@ -71,6 +71,11 @@ private slots:
     void stop_stopsAudioSource_whenInvokedUponFirstStateChange_data();
     void stop_stopsAudioSource_whenInvokedUponFirstStateChange();
 
+    void stateChanged_stringBasedConnect();
+
+    void start_withSamplingRate_data();
+    void start_withSamplingRate();
+
 private:
     using FilePtr = QSharedPointer<QFile>;
 
@@ -985,6 +990,40 @@ void tst_QAudioSource::stop_stopsAudioSource_whenInvokedUponFirstStateChange()
                                                 // TODO: replace with QVERIFY, QTBUG-130272
 
     QTRY_COMPARE(audioSource.state(), QtAudio::State::StoppedState);
+}
+
+void tst_QAudioSource::stateChanged_stringBasedConnect()
+{
+    const QAudioDevice defaultAudioInputDevice = QMediaDevices::defaultAudioInput();
+
+    QAudioSource audioSource(defaultAudioInputDevice, defaultAudioInputDevice.preferredFormat());
+
+    QSignalSpy stateSignal(&audioSource, SIGNAL(stateChanged(QAudio::State)));
+
+    audioSource.start();
+    QTRY_VERIFY(!stateSignal.empty());
+}
+
+void tst_QAudioSource::start_withSamplingRate_data()
+{
+    QTest::addColumn<int>("rate");
+
+    QTest::newRow("minimum") << audioDevice.minimumSampleRate();
+    QTest::newRow("preferred") << audioDevice.preferredFormat().sampleRate();
+    QTest::newRow("maximum") << audioDevice.maximumSampleRate();
+}
+
+void tst_QAudioSource::start_withSamplingRate()
+{
+    QFETCH(int, rate);
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleRate(rate);
+
+    QAudioSource audioSource(format, this);
+    audioSource.start();
+
+    QTRY_COMPARE(audioSource.state(), QAudio::State::IdleState);
 }
 
 QTEST_MAIN(tst_QAudioSource)

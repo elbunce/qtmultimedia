@@ -1,17 +1,19 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include "qabstractvideobuffer.h"
+#include <QtFFmpegMediaPluginImpl/private/qcgwindowcapture_p.h>
 
-#include "qcgwindowcapture_p.h"
-#include "private/qcapturablewindow_p.h"
-#include "qffmpegsurfacecapturegrabber_p.h"
-#include "private/qvideoframe_p.h"
+#include <QtCore/qmutex.h>
+#include <QtCore/qwaitcondition.h>
 
-#include "qscreen.h"
-#include "qguiapplication.h"
-#include <qmutex.h>
-#include <qwaitcondition.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegsurfacecapturegrabber_p.h>
+
+#include <QtGui/qscreen.h>
+#include <QtGui/qguiapplication.h>
+
+#include <QtMultimedia/qabstractvideobuffer.h>
+#include <QtMultimedia/private/qcapturablewindow_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 
 #include <ApplicationServices/ApplicationServices.h>
 #include <IOKit/graphics/IOGraphicsLib.h>

@@ -55,6 +55,7 @@ qt_internal_add_module(GstreamerMediaPluginImplPrivate
     PUBLIC_LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+        Qt::Concurrent
         GStreamer::GStreamer
         GStreamer::App
         GStreamer::Play

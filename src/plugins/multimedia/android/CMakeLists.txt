@@ -48,6 +48,7 @@ qt_internal_add_plugin(QAndroidMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+        Qt::Concurrent
         OpenSLES
         mediandk
 )

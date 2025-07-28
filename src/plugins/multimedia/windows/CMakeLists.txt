@@ -47,6 +47,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+        Qt::Concurrent
         uuid
         d3d9
         dxva2

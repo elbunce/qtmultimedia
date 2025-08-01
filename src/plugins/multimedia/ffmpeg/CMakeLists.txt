@@ -131,7 +131,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
         ${FWAVFoundation}
         ${FWCoreMedia}
         ${FWCoreVideo}
-        ${FWVideoToolbox}
         ${FWSecurity}
 )
 

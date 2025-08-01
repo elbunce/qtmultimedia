@@ -49,7 +49,6 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         uuid
-        WMF::WMF
         d3d9
         dxva2
         evr

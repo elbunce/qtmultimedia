@@ -52,7 +52,6 @@ qt_internal_add_module(GstreamerMediaPluginImplPrivate
         GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
-        QT_NO_CONTEXTLESS_CONNECT
     PUBLIC_LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate

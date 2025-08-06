@@ -319,7 +319,7 @@ void QWASAPIAudioSourceStream::handleAudioClientError()
     audioClientReset(m_audioClient);
     requestStop();
 
-    QMetaObject::invokeMethod(&m_ringbufferDrained, [this] {
+    invokeOnAppThread([this] {
         handleIOError(m_parent);
     });
 }

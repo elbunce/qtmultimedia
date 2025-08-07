@@ -1,8 +1,11 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial
 
-#include <common/qglist_helper_p.h>
 #include "qgstreamerformatinfo_p.h"
+
+#include <common/qglist_helper_p.h>
+
+#include <QtCore/qset.h>
 
 #include <gst/gst.h>
 

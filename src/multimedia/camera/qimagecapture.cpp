@@ -10,6 +10,8 @@
 
 #include "private/qobject_p.h"
 #include <qcamera.h>
+#include <qscreencapture.h>
+#include <qwindowcapture.h>
 #include <private/qplatformcamera_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
@@ -136,7 +138,7 @@ QImageCapture::~QImageCapture()
 */
 bool QImageCapture::isAvailable() const
 {
-    return d_func()->control && d_func()->captureSession && d_func()->captureSession->camera();
+    return d_func()->control && d_func()->captureSession;
 }
 
 /*!
@@ -229,9 +231,15 @@ bool QImageCapture::isReadyForCapture() const
     if (!d->control || !d->captureSession || !d->control->isReadyForCapture())
         return false;
     auto *camera = d->captureSession->camera();
-    if (!camera || !camera->isActive())
-        return false;
-    return true;
+    if (camera && camera->isActive())
+        return true;
+	auto *windowCapture = d->captureSession->windowCapture();
+	if (windowCapture && windowCapture->isActive())
+		return true;
+	auto *screenCapture = d->captureSession->screenCapture();
+	if (screenCapture && screenCapture->isActive())
+		return true;
+	return false;
 }
 
 /*!

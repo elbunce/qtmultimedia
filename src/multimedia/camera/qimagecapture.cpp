@@ -230,8 +230,8 @@ bool QImageCapture::isReadyForCapture() const
     Q_D(const QImageCapture);
     if (!d->control || !d->captureSession || !d->control->isReadyForCapture())
         return false;
-    auto *camera = d->captureSession->camera();
-    if (camera && camera->isActive())
+	auto *camera = d->captureSession->camera();
+	if (camera && camera->isActive())
         return true;
 	auto *windowCapture = d->captureSession->windowCapture();
 	if (windowCapture && windowCapture->isActive())

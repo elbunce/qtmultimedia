@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.projection.MediaProjectionManager;
+import android.media.projection.MediaProjectionConfig;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -53,7 +54,11 @@ class QtScreenGrabber {
     QtScreenGrabber(Activity activity, int requestCode) {
         m_activity = activity;
         MediaProjectionManager mgr = (MediaProjectionManager) activity.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        activity.startActivityForResult(mgr.createScreenCaptureIntent(), requestCode);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            activity.startActivityForResult(mgr.createScreenCaptureIntent(MediaProjectionConfig.createConfigForDefaultDisplay()), requestCode);
+        } else {
+            activity.startActivityForResult(mgr.createScreenCaptureIntent(), requestCode);
+        }
     }
 
     public static Size getScreenCaptureSize(Activity activity) {
